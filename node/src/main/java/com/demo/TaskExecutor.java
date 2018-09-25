@@ -1,5 +1,6 @@
 package com.demo;
 
+@FunctionalInterface
 public interface TaskExecutor {
 
     /**

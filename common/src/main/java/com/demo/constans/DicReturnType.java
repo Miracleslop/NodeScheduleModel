@@ -3,7 +3,8 @@ package com.demo.constans;
 public enum DicReturnType {
     SUCCESS("101"),
     FAIL("201"),
-    OVER("301");
+    OVER("301"),
+    TASK("401");
 
     String val;
 

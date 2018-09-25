@@ -8,6 +8,8 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.lang.Thread.sleep;
+
 /**
  * 调度中心
  */
@@ -111,12 +113,12 @@ public final class ScheduleSocket {
             }
             //  如何为false，则代表没有空闲的节点可以调度
             if (noExec) {
-                respondNode();
+                pollNode();
             }
         }
     }
 
-    public void respondNode() {
+    private void pollNode() {
         for (MSSocket msk : socketMap.values()) {
             try {
                 String rep = msk.readString();
@@ -127,6 +129,16 @@ public final class ScheduleSocket {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void closeNode() throws IOException, InterruptedException {
+        for (MSSocket value : socketMap.values()) {
+            if (value.isFree()) {
+                value.allotTask(new Task(DicReturnType.OVER.str()));
+            }
+        }
+        sleep(2000);
+
     }
 
 
