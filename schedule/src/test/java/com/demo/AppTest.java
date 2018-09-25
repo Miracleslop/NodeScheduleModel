@@ -4,6 +4,8 @@ import static java.lang.Thread.sleep;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -11,6 +13,9 @@ import java.io.IOException;
  * Unit test for simple App.
  */
 public class AppTest {
+
+    private static Logger log = LoggerFactory.getLogger(AppTest.class);
+
     /**
      * Rigorous Test :-)
      */
@@ -36,5 +41,13 @@ public class AppTest {
             //  每2秒轮询一次
             sleep(2000);
         }
+    }
+
+    @Test
+    public void testLogBack() {
+        log.debug("test debug");
+        log.info("test info");
+        log.warn("test warn");
+        log.error("test error");
     }
 }
