@@ -1,13 +1,17 @@
 package com.demo;
 
+import static java.lang.Thread.sleep;
 import static org.junit.Assert.assertTrue;
 
 import com.demo.constans.DicReturnType;
 import org.junit.Test;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Unit test for simple App.
@@ -22,7 +26,7 @@ public class AppTest {
     }
 
     @Test
-    public void testNodeServer() {
+    public void testSimulateServer() {
         ServerSocket serverSocket = null;
         Socket accept = null;
         MSocket mSocket = null;
@@ -39,13 +43,16 @@ public class AppTest {
                     if (i > 7) {
                         break;
                     }
-                    mSocket.writeString(DicReturnType.OVER.str());
                     try {
+                        mSocket.writeString(DicReturnType.OVER.str());
                         String s = mSocket.readString();
                         if (s.startsWith(DicReturnType.OVER.str())) {
                             System.out.println("task over success");
                             break;
                         }
+                    } catch (EOFException eof) {
+                        System.out.println("socket is closed");
+                        break;
                     } catch (Exception e) {
                         System.out.println("task over fail: " + e.getMessage());
                         ++i;
@@ -85,29 +92,53 @@ public class AppTest {
     }
 
     @Test
-    public void testNode() throws IOException {
-//        Runnable runnable = () -> {
-//
-//        };
-//
-//        Thread thread = new Thread(runnable);
-//        thread.start();
-
-        NodeSocket nodeSocket = new NodeSocket("localhost", 8081);
-        while (true) {
-            String task = nodeSocket.waitTask();
-            if (task.startsWith(DicReturnType.OVER.str())) {
-                nodeSocket.commitTask(DicReturnType.OVER);
-                break;
+    public void testNode() throws IOException, SocketCreatFailException, InterruptedException {
+        Runnable runnable = () -> {
+            try {
+                NodeSocket nodeSocket = new NodeSocket("localhost", 8081);
+                TaskExecutor taskExecutor = (String taskData) -> {
+                    try {
+                        sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return new TaskExecuteReturn(true, taskData);
+                };
+                System.out.println(nodeSocket.toString() + " connect success");
+                while (true) {
+                    TaskExecuteReturn taskExecuteReturn = nodeSocket.autoExecuteTask(taskExecutor);
+                    if (taskExecuteReturn.isOptSuc() && taskExecuteReturn.getResponse().startsWith(DicReturnType.OVER.str())) {
+                        System.out.println(nodeSocket.toString() + " task over");
+                        break;
+                    }
+                }
+                nodeSocket.close();
+                System.out.println(nodeSocket.toString() + " connect over");
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            nodeSocket.executeTask((String taskData) -> {
-                System.out.println("execute task: " + taskData);
-                return true;
-            }, task);
-            nodeSocket.commitTask(DicReturnType.SUCCESS);
-        }
+        };
 
-//        thread.interrupt();
+        //  6个线程同时处理
+        final int node_num = 6;
+        ExecutorService threadPool = Executors.newFixedThreadPool(node_num);
+        for (int i = 0; i < node_num; i++) {
+            threadPool.execute(runnable);
+        }
+        threadPool.shutdown();
+        System.out.println("close thread pool");
+        //  关闭线程池，等待任务完成
+        while (true) {//等待所有任务都结束了继续执行
+            try {
+                if (threadPool.isTerminated()) {
+                    System.out.println("所有的子线程都结束了！");
+                    break;
+                }
+                sleep(1000);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
     }
 }

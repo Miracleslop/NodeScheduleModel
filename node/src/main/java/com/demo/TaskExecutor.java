@@ -5,7 +5,7 @@ public interface TaskExecutor {
 
     /**
      * @param taskData 任务数据
-     * @return 返回执行是否成功
+     * @return 返回任务执行结果：optSuc 是否成功, reponse:任务数据，msg:异常信息
      */
-    boolean handle(String taskData);
+    TaskExecuteReturn handle(String taskData);
 }

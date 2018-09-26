@@ -1,5 +1,7 @@
 package com.demo;
 
+import com.demo.constans.DicReturnType;
+
 /**
  * 任务调度中心，负责初始化创建任务序列，并返回当个任务
  */
@@ -33,7 +35,7 @@ public final class TaskControl {
      */
     public Task next() {
         //  创建任务并返回
-        Task task = new Task(this.index * this.per + "," + this.per);
+        Task task = new Task(DicReturnType.TASK.str() + this.index * this.per + "," + this.per);
         //  移动下标到下一个任务
         ++this.index;
         return task;

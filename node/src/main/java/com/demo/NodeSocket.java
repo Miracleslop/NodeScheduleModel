@@ -15,7 +15,7 @@ public class NodeSocket extends MSocket {
         super(socket);
     }
 
-    public NodeSocket(final String ip, final int port) throws IOException {
+    public NodeSocket(final String ip, final int port) throws IOException, SocketCreatFailException, InterruptedException {
         super(ip, port);
     }
 
@@ -28,33 +28,35 @@ public class NodeSocket extends MSocket {
         while (true) {
             try {
                 return this.readString();
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (Exception ignored) {
             }
         }
     }
 
-    public boolean executeTask(TaskExecutor taskExecutor, String taskData) {
-        boolean ret = taskExecutor.handle(taskData);
-        return ret;
+    public TaskExecuteReturn executeTask(TaskExecutor taskExecutor, String taskData) {
+        return taskExecutor.handle(taskData);
     }
 
     public void commitTask(DicReturnType returnType) throws IOException {
         this.writeString(returnType.str());
     }
 
-    public boolean autoExecuteTask(TaskExecutor taskExecutor) throws IOException {
+    public TaskExecuteReturn autoExecuteTask(TaskExecutor taskExecutor) throws IOException {
         String taskData = waitTask();
         if (taskData == null) {
-            return true;
+            return new TaskExecuteReturn(false, null);
         }
-        boolean ret = this.executeTask(taskExecutor, taskData);
-        if (ret) {
+        System.out.println(this.toString() + " execute task: " + taskData);
+        if (taskData.startsWith(DicReturnType.OVER.str())) {
+            return new TaskExecuteReturn(true, DicReturnType.OVER.str());
+        }
+        TaskExecuteReturn ret = this.executeTask(taskExecutor, taskData);
+        if (ret.isOptSuc()) {
             this.commitTask(DicReturnType.SUCCESS);
-            return true;
         } else {
             this.commitTask(DicReturnType.FAIL);
-            return false;
         }
+        return ret;
     }
+
 }

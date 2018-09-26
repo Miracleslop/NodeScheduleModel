@@ -1,7 +1,10 @@
 package com.demo;
 
 import java.io.*;
+import java.net.ConnectException;
 import java.net.Socket;
+
+import static java.lang.Thread.sleep;
 
 public class MSocket {
     private Socket socket;
@@ -12,8 +15,29 @@ public class MSocket {
         this.init(socket);
     }
 
-    public MSocket(final String ip, final int port) throws IOException {
-        Socket ts = new Socket(ip, port);
+    /**
+     * 自动重连服务端
+     *
+     * @param ip
+     * @param port
+     * @throws IOException
+     */
+    public MSocket(final String ip, final int port) throws IOException, SocketCreatFailException, InterruptedException {
+        int i = 0;
+        Socket ts = null;
+        while (true) {
+            ++i;
+            try {
+                ts = new Socket(ip, port);
+                break;
+            } catch (ConnectException ce) {
+                System.out.println("connect fail " + i + " time");
+            }
+            if (i > 999) {
+                throw new SocketCreatFailException();
+            }
+            sleep(2000);
+        }
         this.init(ts);
     }
 
@@ -33,25 +57,21 @@ public class MSocket {
     }
 
     public boolean isAlive() {
-        return this.socket.isClosed();
+        return this.socket != null && !this.socket.isClosed();
     }
 
 
     public void close() {
         try {
             dis.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
             dos.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
             socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ignored) {
         }
+    }
+
+    @Override
+    public String toString() {
+        return this.socket.getInetAddress().getHostAddress() + ":" + this.socket.getPort();
     }
 }
