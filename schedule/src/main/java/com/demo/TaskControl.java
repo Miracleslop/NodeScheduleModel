@@ -21,7 +21,7 @@ public final class TaskControl {
         this.per = per;
         this.total = total;
         this.index = 0;
-        this.num = total / per;
+        this.num = (int) Math.ceil((double) total / (double) per);
     }
 
     public boolean hasNext() {

@@ -10,6 +10,8 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -91,54 +93,17 @@ public class AppTest {
         }
     }
 
+
     @Test
-    public void testNode() throws IOException, SocketCreatFailException, InterruptedException {
-        Runnable runnable = () -> {
-            try {
-                NodeSocket nodeSocket = new NodeSocket("localhost", 8081);
-                TaskExecutor taskExecutor = (String taskData) -> {
-                    try {
-                        sleep(2000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    return new TaskExecuteReturn(true, taskData);
-                };
-                System.out.println(nodeSocket.toString() + " connect success");
-                while (true) {
-                    TaskExecuteReturn taskExecuteReturn = nodeSocket.autoExecuteTask(taskExecutor);
-                    if (taskExecuteReturn.isOptSuc() && taskExecuteReturn.getResponse().startsWith(DicReturnType.OVER.str())) {
-                        System.out.println(nodeSocket.toString() + " task over");
-                        break;
-                    }
-                }
-                nodeSocket.close();
-                System.out.println(nodeSocket.toString() + " connect over");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        };
-
-        //  6个线程同时处理
-        final int node_num = 6;
-        ExecutorService threadPool = Executors.newFixedThreadPool(node_num);
-        for (int i = 0; i < node_num; i++) {
-            threadPool.execute(runnable);
+    public void testMemory() {
+        System.gc();
+        long start = Runtime.getRuntime().freeMemory();
+        Map<Long, Long> o2n = new HashMap<>(262144);
+        for (long i = 0; i < 262144; i++) {
+            o2n.put(i, 262144L);
         }
-        threadPool.shutdown();
-        System.out.println("close thread pool");
-        //  关闭线程池，等待任务完成
-        while (true) {//等待所有任务都结束了继续执行
-            try {
-                if (threadPool.isTerminated()) {
-                    System.out.println("所有的子线程都结束了！");
-                    break;
-                }
-                sleep(1000);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
+        long end = Runtime.getRuntime().freeMemory();
+        System.out.println("一个HashMap对象占内存:" + (start - end) / 1000.0);
     }
+
 }

@@ -29,7 +29,7 @@ public class AppTest {
     public void testSimulateClient() {
         System.out.println("hello  i am test node");
         try {
-            MSocket socket = new MSocket("localhost", 8081);
+            MSocket socket = new MSocket("192.168.2.63", 8081);
             int i = 0;
             while (true) {
                 ++i;
@@ -64,13 +64,14 @@ public class AppTest {
      */
     @Test
     public void testSchedule() throws IOException {
-        ScheduleSocket serverSocket = new ScheduleSocket(6, 8081);
-        TaskControl taskControl = new TaskControl(2000, 150000);
+        ScheduleSocket serverSocket = ScheduleSocket.getInstance(28, 8081);
+        TaskControl taskControl = new TaskControl(2000, 265004);
         try {
             while (true) {
                 if (taskControl.hasNext()) {
                     Task task = taskControl.next();
                     String s = serverSocket.allotTask(task);
+//                    String s = serverSocket.allotTask(new Task(DicReturnType.WAIT.str()));
                     log.debug(s + " accept task: " + task.data());
                 } else {
                     serverSocket.close();
@@ -78,7 +79,8 @@ public class AppTest {
                         break;
                     }
                     String s = serverSocket.allotTask(new Task(DicReturnType.OVER.str()));
-                    log.debug(s + " accept task: OVER");
+                    log.debug(" accept task: OVER");
+                    sleep(5000);
                 }
             }
         } catch (Exception e) {

@@ -1,36 +1,46 @@
 package com.demo;
 
+import com.demo.constans.DicReturnType;
+
 public class TaskExecuteReturn {
-    private boolean optSuc;
 
-    private String response;
+    private String taskData;
 
-    private String msg;
+    private String exMsg;
 
-    public TaskExecuteReturn(boolean optSuc) {
-        this.optSuc = optSuc;
+    private DicReturnType returnType;
+
+    public TaskExecuteReturn(DicReturnType returnType, String exMsg, String taskData) {
+        this.taskData = taskData;
+        this.exMsg = exMsg;
+        this.returnType = returnType;
     }
 
-    public TaskExecuteReturn(boolean optSuc, String response) {
-        this.optSuc = optSuc;
-        this.response = response;
+    public TaskExecuteReturn(DicReturnType returnType, String exMsg) {
+        this.returnType = returnType;
     }
 
-    public TaskExecuteReturn(boolean optSuc, String response, String msg) {
-        this.optSuc = optSuc;
-        this.response = response;
-        this.msg = msg;
+    public TaskExecuteReturn(DicReturnType returnType) {
+        this.returnType = returnType;
     }
 
-    public boolean isOptSuc() {
-        return optSuc;
+    /**
+     * 返回需要用于网络传输的数据
+     */
+    @Override
+    public String toString() {
+        return returnType.str() + (exMsg == null ? "" : exMsg);
     }
 
-    public String getMsg() {
-        return msg;
+    public String getTaskData() {
+        return taskData;
     }
 
-    public String getResponse() {
-        return response;
+    public String getExMsg() {
+        return exMsg;
+    }
+
+    public DicReturnType getReturnType() {
+        return returnType;
     }
 }

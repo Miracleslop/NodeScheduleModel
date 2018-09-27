@@ -7,9 +7,15 @@ import java.net.Socket;
 import static java.lang.Thread.sleep;
 
 public class MSocket {
-    private Socket socket;
+    protected Socket socket;
     private DataInputStream dis;
     private DataOutputStream dos;
+
+    /**
+     * 毫秒
+     */
+    private final int defaultWaitTime = 60000;
+
 
     public MSocket(Socket socket) throws IOException {
         this.init(socket);
@@ -17,34 +23,32 @@ public class MSocket {
 
     /**
      * 自动重连服务端
-     *
-     * @param ip
-     * @param port
-     * @throws IOException
      */
     public MSocket(final String ip, final int port) throws IOException, SocketCreatFailException, InterruptedException {
-        int i = 0;
+        this.init(ip, port);
+    }
+
+    protected void init(final String ip, final int port) throws IOException, InterruptedException, SocketCreatFailException {
         Socket ts = null;
-        while (true) {
-            ++i;
+        int i = 0;
+        while (++i > 0) {
             try {
                 ts = new Socket(ip, port);
                 break;
             } catch (ConnectException ce) {
                 System.out.println("connect fail " + i + " time");
             }
-            if (i > 999) {
-                throw new SocketCreatFailException();
-            }
-            sleep(2000);
+            sleep(5000);
         }
-        this.init(ts);
+        init(ts);
     }
 
-    private void init(Socket socket) throws IOException {
+    protected void init(Socket socket) throws IOException {
         this.socket = socket;
+        socket.setSoTimeout(defaultWaitTime);
         dis = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
         dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+        System.out.println("[socket] " + this.toString() + " connect success");
     }
 
     public void writeString(String msg) throws IOException {
@@ -66,7 +70,9 @@ public class MSocket {
             dis.close();
             dos.close();
             socket.close();
+            System.out.println("[socket] " + this.toString() + " connect close");
         } catch (IOException ignored) {
+            System.out.println("[socket] " + this.toString() + " connect unusual close");
         }
     }
 
@@ -74,4 +80,6 @@ public class MSocket {
     public String toString() {
         return this.socket.getInetAddress().getHostAddress() + ":" + this.socket.getPort();
     }
+
+
 }
