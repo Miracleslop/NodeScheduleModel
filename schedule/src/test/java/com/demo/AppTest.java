@@ -9,21 +9,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.rmi.server.ExportException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 
 
 import static com.demo.DBTableSqlSet.*;
+
 
 /**
  * Unit test for simple App.
  */
 public class AppTest {
+
+    private static final String database = "192.168.1.22:3306/w5mall";
+    private static final String user = "root";
+    private static final String password = "W5zg@20180716pre";
 
     private static Logger log = LoggerFactory.getLogger(AppTest.class);
 
@@ -67,6 +69,7 @@ public class AppTest {
         }
     }
 
+    private final static int socket_num = 300;
     /**
      * 测试sku任务分配
      *
@@ -74,7 +77,8 @@ public class AppTest {
      */
     @Test
     public void testSkuSchedule() throws IOException, InterruptedException, NoHaveEffectiveNodeException {
-        ScheduleSocket serverSocket = ScheduleSocket.getInstance(50, 8081);
+        log.info("[ScheduleSocket] sku wait node connect...");
+        ScheduleSocket serverSocket = ScheduleSocket.getInstance(socket_num, 8081);
         TaskControl taskControl = new TaskControl(2000, 265004);
         while (taskControl.hasNext()) {
             Task task = taskControl.next();
@@ -82,7 +86,9 @@ public class AppTest {
 //                    String s = serverSocket.allotTask(new Task(DicReturnType.WAIT.str()));
             log.debug(s + " accept task: " + task.data());
         }
-        serverSocket.waitClose(600);
+        serverSocket.waitNodeClose(60000);
+//        serverSocket.close();
+        log.info("[ScheduleSocket] sku close success...");
     }
 
     /**
@@ -94,9 +100,6 @@ public class AppTest {
         Statement statement;
         Connection conn;
         while (true) {
-            final String database = "192.168.1.22:3306/w5mall_check";
-            final String user = "root";
-            final String password = "W5zg@20180716pre";
             try {
                 Class.forName("com.mysql.jdbc.Driver");
                 conn = DriverManager.getConnection("jdbc:mysql://" + database + "?useUnicode=true&autoReconnect=true&connectTimeout=5000&useSSL=false", user, password);
@@ -107,8 +110,8 @@ public class AppTest {
                 sleep(3000);
             }
         }
-        log.info("wait node connect...");
-        ScheduleSocket serverSocket = ScheduleSocket.getInstance(60, 8081);
+        log.info("[ScheduleSocket] other wait node connect...");
+        ScheduleSocket serverSocket = ScheduleSocket.getInstance(socket_num, 8081);
         DBTableSqlSet table[] = {
                 gc_goods_spec
                 , gc_shopping_cart
@@ -135,7 +138,9 @@ public class AppTest {
             }
         }
         //  等待关闭服务
-        serverSocket.waitClose(600);
+        serverSocket.waitNodeClose(60000);
+//        serverSocket.close();
+        log.info("[ScheduleSocket] sku close success...");
     }
 
 

@@ -149,7 +149,7 @@ public final class ScheduleSocket {
      *
      * @return
      */
-    public boolean isAllClose() {
+    public boolean isAllNodeClose() {
         //  标记是否有socket处于NOT CLOSE状态
         boolean sign = true;
         for (MSSocket clientSocket : socketList) {
@@ -192,7 +192,7 @@ public final class ScheduleSocket {
                 throw new NoHaveEffectiveNodeException();
             }
             //  如何为false，则代表没有空闲的节点可以调度
-            sleep(1000);
+            sleep(100);
         }
     }
 
@@ -200,12 +200,12 @@ public final class ScheduleSocket {
      * 关闭处于OVER状态的节点
      * OVER -> CLOSE
      */
-    public void close() {
+    public void closeNode() {
         for (MSSocket st : socketList) {
             if (st.status.equals(DicSocketStatus.OVER)) {
                 st.signClose();
                 st.close();
-                log.debug("close socket: " + st.toString());
+//                log.debug("closeNode socket: " + st.toString());
             }
         }
     }
@@ -213,27 +213,27 @@ public final class ScheduleSocket {
     /**
      * 等待关闭socket，如何时间超过最大等待时间，则强制关闭
      *
-     * @param maxWaitSecond 最大等待时间(s)
+     * @param maxWaitSecond 最大等待时间(ms)
      */
-    public void waitClose(long maxWaitSecond) {
+    public void waitNodeClose(long maxWaitSecond) {
         try {
             int i = 0;
             while (true) {
-                this.close();
-                if (this.isAllClose()) {
+                this.closeNode();
+                if (this.isAllNodeClose()) {
                     break;
                 }
                 if (i >= maxWaitSecond) {
-                    throw new Exception("wait close fail and safely force close ");
+                    throw new Exception("wait closeNode fail and safely force closeNode ");
                 }
                 try {
                     String s = this.allotTask(new Task(DicReturnType.OVER.str()));
-                    log.debug(s + " accept task: OVER");
+//                    log.debug(s + " accept task: OVER");
                 } catch (NoHaveEffectiveNodeException e) {
                     log.warn("NoHaveEffectiveNodeException");
                 }
-                i += 0.5;
-                sleep(500);
+//                i += 1;
+//                sleep(10);
             }
         } catch (Exception e) {
             this.safeInterrupt();
@@ -246,7 +246,7 @@ public final class ScheduleSocket {
             try {
                 st.close();
             } catch (Exception e) {
-                log.warn(st.toString() + " close exception :" + e.getMessage());
+                log.warn(st.toString() + " closeNode exception :" + e.getMessage());
             }
         }
         while (true) {//等待所有任务都结束了继续执行
@@ -257,9 +257,13 @@ public final class ScheduleSocket {
                 }
                 sleep(1000);
             } catch (Exception e) {
-                log.error(" pollingPool wait close exception: " + e.getMessage(), e);
+                log.error(" pollingPool wait closeNode exception: " + e.getMessage(), e);
             }
         }
+    }
+
+    public void close() {
+        instance.close();
     }
 
 

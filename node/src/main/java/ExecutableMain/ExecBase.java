@@ -11,9 +11,9 @@ class ExecBase {
 
     Connection conn;
 
-    private final String database = "192.168.1.22:3306/w5mall_check";
-    private final String user = "root";
-    private final String password = "W5zg@20180716pre";
+    private static final String database = "192.168.1.22:3306/w5mall";
+    private static final String user = "root";
+    private static final String password = "W5zg@20180716pre";
 
     static {
         try {

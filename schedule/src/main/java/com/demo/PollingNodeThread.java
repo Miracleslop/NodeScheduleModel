@@ -70,14 +70,10 @@ public class PollingNodeThread implements Runnable {
                 }
             }
             if (count == socketList.size()) {
-                log.info("socket of all is over, and polling end");
+                log.debug("socket over, and polling end");
                 break;
             }
-            try {
-                sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+//                sleep(500);
         }
     }
 }

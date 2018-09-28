@@ -59,9 +59,10 @@ public class Main {
         System.out.println("sku thread pool setup complete ");
         //等待所有任务都结束了再继续执行
         while (count.get() != poolMaxSize) {
-            System.out.println("sku game over ");
             sleep(3000);
         }
+        System.out.println("sku game over and wait 60s...");
+        sleep(60000);
 
 
         //  other 处理程序
