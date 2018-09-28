@@ -1,5 +1,6 @@
 package com.demo;
 
+import com.demo.constans.DicReturnType;
 import com.demo.constans.DicSocketStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +13,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static java.lang.Thread.getAllStackTraces;
 import static java.lang.Thread.sleep;
 
 /**
@@ -192,7 +192,7 @@ public final class ScheduleSocket {
                 throw new NoHaveEffectiveNodeException();
             }
             //  如何为false，则代表没有空闲的节点可以调度
-            sleep(2000);
+            sleep(1000);
         }
     }
 
@@ -205,8 +205,38 @@ public final class ScheduleSocket {
             if (st.status.equals(DicSocketStatus.OVER)) {
                 st.signClose();
                 st.close();
-                log.info("close socket: " + st.toString());
+                log.debug("close socket: " + st.toString());
             }
+        }
+    }
+
+    /**
+     * 等待关闭socket，如何时间超过最大等待时间，则强制关闭
+     *
+     * @param maxWaitSecond 最大等待时间(s)
+     */
+    public void waitClose(long maxWaitSecond) {
+        try {
+            int i = 0;
+            while (true) {
+                this.close();
+                if (this.isAllClose()) {
+                    break;
+                }
+                if (i >= maxWaitSecond) {
+                    throw new Exception("wait close fail and safely force close ");
+                }
+                try {
+                    String s = this.allotTask(new Task(DicReturnType.OVER.str()));
+                    log.debug(s + " accept task: OVER");
+                } catch (NoHaveEffectiveNodeException e) {
+                    log.warn("NoHaveEffectiveNodeException");
+                }
+                i += 0.5;
+                sleep(500);
+            }
+        } catch (Exception e) {
+            this.safeInterrupt();
         }
     }
 

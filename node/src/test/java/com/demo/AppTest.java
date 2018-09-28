@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Unit test for simple App.
@@ -104,6 +105,48 @@ public class AppTest {
         }
         long end = Runtime.getRuntime().freeMemory();
         System.out.println("一个HashMap对象占内存:" + (start - end) / 1000.0);
+    }
+
+
+    @Test
+    public void testExecutorService() {
+        AtomicInteger count = new AtomicInteger();
+        ExecutorService threadPool = Executors.newFixedThreadPool(10);
+        for (int i = 0; i < 10; i++) {
+            System.out.println("create thread " + i);
+            threadPool.execute(() -> {
+                try {
+                    sleep(10000);
+                    System.out.println("thread " + Thread.currentThread().getName() + "complete");
+                    count.incrementAndGet();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+        while (true) {
+            if (count.get() == 10) {
+                System.out.println("threadpool is terminated");
+                break;
+            }
+        }
+
+        for (int i = 0; i < 10; i++) {
+            System.out.println("create thread " + i);
+            threadPool.execute(() -> {
+                try {
+                    sleep(10000);
+                    System.out.println("thread " + Thread.currentThread().getName() + "complete");
+                    count.incrementAndGet();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+        threadPool.shutdown();
+        while (!threadPool.isTerminated()) ;
+        System.out.println(threadPool.isShutdown());
+        System.out.println(threadPool.isShutdown());
     }
 
 }

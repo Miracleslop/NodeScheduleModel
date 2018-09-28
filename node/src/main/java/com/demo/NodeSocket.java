@@ -31,7 +31,7 @@ public class NodeSocket extends MSocket {
             try {
                 return this.readString();
             } catch (SocketTimeoutException ste) {
-                System.out.println(ste.getMessage());
+                System.out.println(Thread.currentThread().getName() + ": " + ste.getMessage());
             } catch (SocketException e) {
                 //  支持断后重连
                 String ip = this.socket.getInetAddress().getHostAddress();

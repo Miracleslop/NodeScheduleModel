@@ -40,4 +40,13 @@ public final class TaskControl {
         ++this.index;
         return task;
     }
+
+
+    public Task next(String extra) {
+        //  创建任务并返回
+        Task task = new Task(DicReturnType.TASK.str() + this.index * this.per + "," + this.per + "," + extra);
+        //  移动下标到下一个任务
+        ++this.index;
+        return task;
+    }
 }

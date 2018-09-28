@@ -9,6 +9,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.rmi.server.ExportException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
+
+import static com.demo.DBTableSqlSet.*;
 
 /**
  * Unit test for simple App.
@@ -58,34 +68,74 @@ public class AppTest {
     }
 
     /**
-     * 测试一个客户端连接
+     * 测试sku任务分配
      *
      * @throws IOException
      */
     @Test
-    public void testSchedule() throws IOException {
-        ScheduleSocket serverSocket = ScheduleSocket.getInstance(28, 8081);
+    public void testSkuSchedule() throws IOException, InterruptedException, NoHaveEffectiveNodeException {
+        ScheduleSocket serverSocket = ScheduleSocket.getInstance(50, 8081);
         TaskControl taskControl = new TaskControl(2000, 265004);
-        try {
-            while (true) {
-                if (taskControl.hasNext()) {
-                    Task task = taskControl.next();
-                    String s = serverSocket.allotTask(task);
+        while (taskControl.hasNext()) {
+            Task task = taskControl.next();
+            String s = serverSocket.allotTask(task);
 //                    String s = serverSocket.allotTask(new Task(DicReturnType.WAIT.str()));
-                    log.debug(s + " accept task: " + task.data());
-                } else {
-                    serverSocket.close();
-                    if (serverSocket.isAllClose()) {
-                        break;
-                    }
-                    String s = serverSocket.allotTask(new Task(DicReturnType.OVER.str()));
-                    log.debug(" accept task: OVER");
-                    sleep(5000);
-                }
-            }
-        } catch (Exception e) {
-            serverSocket.safeInterrupt();
+            log.debug(s + " accept task: " + task.data());
         }
+        serverSocket.waitClose(600);
+    }
+
+    /**
+     * 测试其他任务分配
+     */
+    @Test
+    public void testOtherSchedule() throws IOException, InterruptedException, NoHaveEffectiveNodeException {
+        //  连接数据库
+        Statement statement;
+        Connection conn;
+        while (true) {
+            final String database = "192.168.1.22:3306/w5mall_check";
+            final String user = "root";
+            final String password = "W5zg@20180716pre";
+            try {
+                Class.forName("com.mysql.jdbc.Driver");
+                conn = DriverManager.getConnection("jdbc:mysql://" + database + "?useUnicode=true&autoReconnect=true&connectTimeout=5000&useSSL=false", user, password);
+                statement = conn.createStatement();
+                break;
+            } catch (Exception e) {
+                log.error("[mysql]  connection fail: " + e.getMessage());
+                sleep(3000);
+            }
+        }
+        log.info("wait node connect...");
+        ScheduleSocket serverSocket = ScheduleSocket.getInstance(60, 8081);
+        DBTableSqlSet table[] = {
+                gc_goods_spec
+                , gc_shopping_cart
+                , tc_discount_comm, tc_order_detail, tc_record_goods_rejected, tc_supplier_return_account_detail, uc_message_sc_ag
+        };
+        //  执行任务
+        for (DBTableSqlSet sqlSet : table) {
+            TaskControl taskControl;
+            try {
+                ResultSet rs = statement.executeQuery(sqlSet.getCount_sql());
+                rs.next();
+                int total = rs.getInt(1);
+                taskControl = new TaskControl(2000, total);
+            } catch (Exception e) {
+                log.error(sqlSet.getCount_sql() + " execute fail and skip ");
+                continue;
+            }
+            String tableName = sqlSet.getSelect().substring(sqlSet.getSelect().indexOf("FROM") + 4, sqlSet.getSelect().indexOf("LIMIT") - 1).trim();
+            while (taskControl.hasNext()) {
+                Task task = taskControl.next(tableName);
+                String s = serverSocket.allotTask(task);
+//                    String s = serverSocket.allotTask(new Task(DicReturnType.WAIT.str()));
+                log.debug(s + " accept task: " + task.data());
+            }
+        }
+        //  等待关闭服务
+        serverSocket.waitClose(600);
     }
 
 
