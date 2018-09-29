@@ -9,10 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.*;
 
 
 import static com.demo.DBTableSqlSet.*;
@@ -22,10 +19,6 @@ import static com.demo.DBTableSqlSet.*;
  * Unit test for simple App.
  */
 public class AppTest {
-
-    private static final String database = "192.168.1.22:3306/w5mall";
-    private static final String user = "root";
-    private static final String password = "W5zg@20180716pre";
 
     private static Logger log = LoggerFactory.getLogger(AppTest.class);
 
@@ -69,25 +62,39 @@ public class AppTest {
         }
     }
 
+
     private final static int socket_num = 300;
+
+    private final static int task_per = 2000;
+
     /**
      * 测试sku任务分配
      *
      * @throws IOException
      */
     @Test
-    public void testSkuSchedule() throws IOException, InterruptedException, NoHaveEffectiveNodeException {
+    public void testSkuSchedule() throws IOException, InterruptedException, NoHaveEffectiveNodeException, SQLException {
+        //  连接数据库
+        MysqlUtil mysqlUtil = new MysqlUtil();
+        Statement statement = mysqlUtil.creatStatement();
+
+        //  连接node
         log.info("[ScheduleSocket] sku wait node connect...");
         ScheduleSocket serverSocket = ScheduleSocket.getInstance(socket_num, 8081);
-        TaskControl taskControl = new TaskControl(2000, 265004);
+
+        //  查询total
+        ResultSet rs = statement.executeQuery("select count(1) from gc_goods_sku");
+        rs.next();
+        int total = rs.getInt(1);
+        TaskControl taskControl = new TaskControl(task_per, total);
+        log.info("[TaskControl]  gc_goods_sku's task allot success: " + taskControl.toString());
+
         while (taskControl.hasNext()) {
             Task task = taskControl.next();
             String s = serverSocket.allotTask(task);
-//                    String s = serverSocket.allotTask(new Task(DicReturnType.WAIT.str()));
             log.debug(s + " accept task: " + task.data());
         }
-        serverSocket.waitNodeClose(60000);
-//        serverSocket.close();
+        serverSocket.waitNodeClose(600000);
         log.info("[ScheduleSocket] sku close success...");
     }
 
@@ -95,52 +102,48 @@ public class AppTest {
      * 测试其他任务分配
      */
     @Test
-    public void testOtherSchedule() throws IOException, InterruptedException, NoHaveEffectiveNodeException {
+    public void testOtherSchedule() throws IOException, InterruptedException, NoHaveEffectiveNodeException, SQLException {
         //  连接数据库
-        Statement statement;
-        Connection conn;
-        while (true) {
-            try {
-                Class.forName("com.mysql.jdbc.Driver");
-                conn = DriverManager.getConnection("jdbc:mysql://" + database + "?useUnicode=true&autoReconnect=true&connectTimeout=5000&useSSL=false", user, password);
-                statement = conn.createStatement();
-                break;
-            } catch (Exception e) {
-                log.error("[mysql]  connection fail: " + e.getMessage());
-                sleep(3000);
-            }
-        }
-        log.info("[ScheduleSocket] other wait node connect...");
-        ScheduleSocket serverSocket = ScheduleSocket.getInstance(socket_num, 8081);
+        MysqlUtil mysqlUtil = new MysqlUtil();
+        Statement statement = mysqlUtil.creatStatement();
         DBTableSqlSet table[] = {
                 gc_goods_spec
                 , gc_shopping_cart
                 , tc_discount_comm, tc_order_detail, tc_record_goods_rejected, tc_supplier_return_account_detail, uc_message_sc_ag
         };
-        //  执行任务
+
+        //  连接node
+        log.info("[ScheduleSocket] other wait node connect...");
+        ScheduleSocket serverSocket = ScheduleSocket.getInstance(socket_num, 8081);
+
         for (DBTableSqlSet sqlSet : table) {
+            //  查询并创建任务控制中心
             TaskControl taskControl;
             try {
                 ResultSet rs = statement.executeQuery(sqlSet.getCount_sql());
                 rs.next();
                 int total = rs.getInt(1);
-                taskControl = new TaskControl(2000, total);
+                taskControl = new TaskControl(task_per, total);
             } catch (Exception e) {
                 log.error(sqlSet.getCount_sql() + " execute fail and skip ");
                 continue;
             }
+            //  获取表名
             String tableName = sqlSet.getSelect().substring(sqlSet.getSelect().indexOf("FROM") + 4, sqlSet.getSelect().indexOf("LIMIT") - 1).trim();
+            log.info("[TaskControl]  " + tableName + "'s task allot success: " + taskControl.toString());
+
+            //  开始分配任务到node
             while (taskControl.hasNext()) {
                 Task task = taskControl.next(tableName);
                 String s = serverSocket.allotTask(task);
-//                    String s = serverSocket.allotTask(new Task(DicReturnType.WAIT.str()));
                 log.debug(s + " accept task: " + task.data());
             }
         }
+        //  关闭mysql
+        mysqlUtil.close();
         //  等待关闭服务
         serverSocket.waitNodeClose(60000);
-//        serverSocket.close();
-        log.info("[ScheduleSocket] sku close success...");
+        log.info("[ScheduleSocket] other close success...");
     }
 
 

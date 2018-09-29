@@ -49,4 +49,13 @@ public final class TaskControl {
         ++this.index;
         return task;
     }
+
+    @Override
+    public String toString() {
+        return "TaskControl{" +
+                "per=" + per +
+                ", total=" + total +
+                ", num=" + num +
+                '}';
+    }
 }

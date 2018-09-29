@@ -1,0 +1,24 @@
+2018-09-29 14:35:11,906 INFO [main] c.d.AppTest [AppTest.java : 82] [ScheduleSocket] sku wait node connect...
+2018-09-29 14:35:20,821 INFO [main] c.d.ScheduleSocket [ScheduleSocket.java : 125]  --socket num: 300 --thread num: 10 --poll num of per thread: 30
+2018-09-29 14:35:21,071 INFO [main] c.d.AppTest [AppTest.java : 90] [TaskControl]  gc_goods_sku's task allot success: TaskControl{per=2000, total=271039, num=136}
+2018-09-29 14:36:03,922 INFO [main] c.d.ScheduleSocket [ScheduleSocket.java : 191] Don't have effective node
+2018-09-29 14:36:03,922 WARN [main] c.d.ScheduleSocket [ScheduleSocket.java : 233] NoHaveEffectiveNodeException
+2018-09-29 14:36:03,922 INFO [main] c.d.AppTest [AppTest.java : 98] [ScheduleSocket] sku close success...
+2018-09-29 14:36:11,641 INFO [main] c.d.MysqlUtil [MysqlUtil.java : 35] [mysql]  connection success: 192.168.1.22:3306/w5mall
+2018-09-29 14:36:11,641 INFO [main] c.d.AppTest [AppTest.java : 116] [ScheduleSocket] other wait node connect...
+2018-09-29 14:37:58,175 INFO [main] c.d.ScheduleSocket [ScheduleSocket.java : 125]  --socket num: 300 --thread num: 10 --poll num of per thread: 30
+2018-09-29 14:37:58,446 INFO [main] c.d.AppTest [AppTest.java : 133] [TaskControl]  gc_goods_spec's task allot success: TaskControl{per=2000, total=526522, num=264}
+2018-09-29 14:37:59,673 INFO [main] c.d.AppTest [AppTest.java : 133] [TaskControl]  gc_shopping_cart's task allot success: TaskControl{per=2000, total=9877, num=5}
+2018-09-29 14:37:59,861 INFO [main] c.d.AppTest [AppTest.java : 133] [TaskControl]  tc_discount_comm's task allot success: TaskControl{per=2000, total=208, num=1}
+2018-09-29 14:37:59,923 INFO [main] c.d.AppTest [AppTest.java : 133] [TaskControl]  tc_order_detail's task allot success: TaskControl{per=2000, total=3954, num=2}
+2018-09-29 14:37:59,939 INFO [main] c.d.AppTest [AppTest.java : 133] [TaskControl]  tc_record_goods_rejected's task allot success: TaskControl{per=2000, total=446, num=1}
+2018-09-29 14:37:59,970 INFO [main] c.d.AppTest [AppTest.java : 133] [TaskControl]  tc_supplier_return_account_detail's task allot success: TaskControl{per=2000, total=0, num=0}
+2018-09-29 14:37:59,986 INFO [main] c.d.AppTest [AppTest.java : 133] [TaskControl]  uc_message_sc_ag's task allot success: TaskControl{per=2000, total=29, num=1}
+2018-09-29 14:38:40,949 WARN [pool-1-thread-2] c.d.PollingNodeThread [PollingNodeThread.java : 47] FAIL socket 192.168.2.67:50670, response: 403gc_goods_spec(105482,55303):null(105483,55303):null     BUSY -> FREE
+2018-09-29 14:38:43,078 WARN [pool-1-thread-3] c.d.PollingNodeThread [PollingNodeThread.java : 47] FAIL socket 192.168.2.67:50746, response: 403gc_goods_spec(178595,196855):null(178596,196855):null     BUSY -> FREE
+2018-09-29 14:38:44,095 WARN [pool-1-thread-5] c.d.PollingNodeThread [PollingNodeThread.java : 47] FAIL socket 192.168.2.172:14244, response: 403gc_goods_spec(253060,234261):null(253100,234290):null(253382,234432):null     BUSY -> FREE
+2018-09-29 14:38:44,204 WARN [pool-1-thread-10] c.d.PollingNodeThread [PollingNodeThread.java : 47] FAIL socket 192.168.2.66:64852, response: 403tc_order_detail(3315,25672097163):null(3318,25672097163):null(3319,25672097163):null     BUSY -> FREE
+2018-09-29 14:38:44,204 WARN [pool-1-thread-10] c.d.PollingNodeThread [PollingNodeThread.java : 47] FAIL socket 192.168.2.66:64851, response: 403tc_order_detail(545,29293):null(569,29293):null(727,29293):null     BUSY -> FREE
+2018-09-29 14:38:50,244 INFO [main] c.d.ScheduleSocket [ScheduleSocket.java : 191] Don't have effective node
+2018-09-29 14:38:50,244 WARN [main] c.d.ScheduleSocket [ScheduleSocket.java : 233] NoHaveEffectiveNodeException
+2018-09-29 14:38:50,244 INFO [main] c.d.AppTest [AppTest.java : 146] [ScheduleSocket] sku close success...
